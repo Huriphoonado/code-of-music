@@ -1,6 +1,6 @@
 let gravity = 2;
-let min_speed = 5;
-let max_speed = 40;
+let min_speed = 10;
+let max_speed = 50;
 
 function Particle(x, y) {
     this.x = x;
@@ -20,7 +20,7 @@ function Particle(x, y) {
 
         var v = createVector(this.x, this.y);
         this.history.push(v);
-        if (this.history.length > 20) {
+        if (this.history.length > 100) {
          this.history.splice(0, 1);
        }
     }
@@ -28,9 +28,7 @@ function Particle(x, y) {
    this.show = function() {
        stroke(this.fill);
        fill(this.fill, this.fill);
-       // ellipse(this.x, this.y, 4, 4);
 
-       // noFill();
        beginShape();
        for (var i = 0; i < this.history.length; i++) {
            var pos = this.history[i];
