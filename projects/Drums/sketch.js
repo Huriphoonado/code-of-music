@@ -1,5 +1,6 @@
 let c_width = 400; // Window Size params
 let c_height = 400;
+let blu = 0; // Background Color
 let window_active = false;
 
 Tone.Transport.bpm.value = 120;
@@ -18,7 +19,6 @@ let musical_shapes = [none, point, line, tri, sqre, pent, hex, oct];
 
 // Generate an initial set of beats
 // Instruments only have acess to some of the shapes
-let beat_names = ['kick', 'snare', 'hat', 'aux1', 'aux2'];
 let beats = {
     'kick':[musical_shapes[0], musical_shapes.slice(1, 7)],
     'snare':[musical_shapes[0], musical_shapes.slice(1, 5)],
@@ -30,7 +30,7 @@ let beat_matrix = generatePatterns();
 
 // Audio Files
 
-// Because we want to use panning - we can't use the Tone.js Panners object
+// Because we want to use panning - we can't use the Tone.js Players object
 let kick = new Tone.Player('audio/ECS\ Kick\ 02.wav');
 let snare = new Tone.Player('audio/ECS\ Snare\ 10.wav');
 let hat = new Tone.Player('audio/ECS\ HH\ 21.mp3');
@@ -56,28 +56,40 @@ for (let i = 0; i < kit.length; i++) {
     kit[i].chain(kit_pan[i], master_vol, Tone.Master);
 }
 
-// kit.chain(verb, verb_vol, master_vol, Tone.Master);
-// kit.chain(master_vol, Tone.Master);
-
 // Set up the loop
 let loop = new Tone.Sequence(function(time, col){
     let column = getBeatColumn(beat_matrix, col);
     for(let i = 0; i < column.length; i++) {
         if (column[i]) {
-            kit[i].start(time, 0, "8n");
+            playSound(kit[i], time);
         }
     }
 }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "16n");
 loop.start();
 
+// Visuals
+let particles = [];
+
+function playSound(samp, time) {
+    if (samp.loaded) {
+        samp.volume.value = random(-2, 0); // Slight volume variation
+        samp.start(time, 0, "8n");
+    }
+}
+
 function setup() {
   createCanvas(c_width, c_height);
-  background(220);
-  // Tone.Transport.start();
+  background(22, 45, blu);
+  particles.push(new Particle(skewedRand(0, width), skewedRand(0, height)));
 }
 
 function draw() {
-	background(220);
+    setBackgroundColor();
+
+    for (let i = 0; i < particles.length; i++) {
+   		particles[i].update();
+   		particles[i].show();
+ 	}
 }
 
 function generatePatterns() {
@@ -106,6 +118,16 @@ function addRandBeat() {
             added = true;
         }
     }
+}
+
+function setBackgroundColor() {
+    if (window_active) {
+        blu = lerp(blu, 80, 0.05);
+    }
+    else {
+        blu = lerp(blu, 0, 0.05);
+    }
+    background(22, 45, blu);
 }
 
 // User Input
@@ -143,6 +165,7 @@ function getBeatColumn(arr, col) {
     });
 }
 
-function skewed_random(min, max, gamma) {
-	let r = Math.pow(Math.random(), 2);
+function skewedRand(min, max, gamma=2) {
+	let r = Math.pow(Math.random(), gamma);
+    return map(r, 0, 1, min, max);
 }
