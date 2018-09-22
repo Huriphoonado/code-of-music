@@ -1,5 +1,6 @@
 let c_width = 400; // Window Size params
 let c_height = 400;
+let window_active = false;
 
 Tone.Transport.bpm.value = 120;
 
@@ -12,6 +13,7 @@ let sqre = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
 let pent = [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0];
 let hex = [1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0];
 let oct = [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+// These should never be altered - make sure copy is always used
 let musical_shapes = [none, point, line, tri, sqre, pent, hex, oct];
 
 // Generate an initial set of beats
@@ -27,31 +29,45 @@ let beats = {
 let beat_matrix = generatePatterns();
 
 // Audio Files
-let kit = new Tone.Players({
-    'kick':'audio/ECS\ Kick\ 02.wav',
-    'snare':'audio/ECS\ Snare\ 10.wav',
-    'hat':'audio/ECS\ HH\ 21.mp3',
-    'aux1': 'audio/ECS\ Perc\ 51.wav',
-    'aux2': 'audio/ECS\ Perc\ 52.wav'
-});
 
-// let freeverb = new Tone.Freeverb().toMaster();
-kit.toMaster();
-// kit.connect(freeverb);
+// Because we want to use panning - we can't use the Tone.js Panners object
+let kick = new Tone.Player('audio/ECS\ Kick\ 02.wav');
+let snare = new Tone.Player('audio/ECS\ Snare\ 10.wav');
+let hat = new Tone.Player('audio/ECS\ HH\ 21.mp3');
+let aux1 = new Tone.Player('audio/ECS\ Perc\ 51.wav');
+let aux2 = new Tone.Player('audio/ECS\ Perc\ 52.wav');
 
-let particles = [];
+let kick_pan = new Tone.PanVol(0, 0);
+let snare_pan = new Tone.PanVol(-0.3, -12);
+let hat_pan = new Tone.PanVol(0.3, 0);
+let aux1_pan = new Tone.PanVol(-0.8, 0);
+let aux2_pan = new Tone.PanVol(0.8, 0);
 
+kit = [kick, snare, hat, aux1, aux2];
+kit_pan = [kick_pan, snare_pan, hat_pan, aux1_pan, aux2_pan];
+
+// Signal Routing
+let verb = new Tone.Freeverb();
+let verb_vol = new Tone.Volume(-20);
+let master_vol = new Tone.Volume(0);
+
+for (let i = 0; i < kit.length; i++) {
+    kit[i].chain(kit_pan[i], verb, verb_vol, master_vol, Tone.Master);
+    kit[i].chain(kit_pan[i], master_vol, Tone.Master);
+}
+
+// kit.chain(verb, verb_vol, master_vol, Tone.Master);
+// kit.chain(master_vol, Tone.Master);
+
+// Set up the loop
 let loop = new Tone.Sequence(function(time, col){
     let column = getBeatColumn(beat_matrix, col);
     for(let i = 0; i < column.length; i++) {
         if (column[i]) {
-            let vel = Math.random() * 0.5 + 0.5; // Not working yet
-            kit.get(beat_names[i]).start(time, 0, "32n", 0, vel);
+            kit[i].start(time, 0, "8n");
         }
     }
 }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "16n");
-
-Tone.Transport.start();
 loop.start();
 
 function setup() {
@@ -60,33 +76,8 @@ function setup() {
   // Tone.Transport.start();
 }
 
-//Tone.Transport.scheduleRepeat(playSounds, "16n");
-// Tone.Transport.start();
-
 function draw() {
 	background(220);
-}
-
-function playSounds() {
-    if (kit.loaded) {
-        let beat = Tone.Transport.position.split(":")[1];
-        console.log(Tone.Transport.position);
-        console.log(beat);
-        playBeat('kick', beat);
-        playBeat('snare', beat);
-        playBeat('hat', beat);
-        playBeat('aux1', beat);
-        playBeat('aux2', beat);
-    }
-}
-
-function playBeat(ins, beat) {
-    console.log(beats[ins]);
-    let beat_or_rest = beats[ins][0][beat];
-    if (beat_or_rest) {
-        kit.get(ins).start();
-    }
-    return beat_or_rest;
 }
 
 function generatePatterns() {
@@ -100,17 +91,45 @@ function generatePatterns() {
     return new_matrix;
 }
 
+function addRandBeat() {
+    let col_len = beat_matrix.length;
+    let row_len = beat_matrix[0].length;
+    let added = false;
+
+    // Keep trying until we find a  place in the matrix without a beat
+    while (!added) {
+        let rand_col = Math.floor((Math.random()*col_len));
+        let rand_row = Math.floor((Math.random()*row_len));
+        let attempt = beat_matrix[rand_col][rand_row];
+        if (!attempt) {
+            beat_matrix[rand_col][rand_row] = 1;
+            added = true;
+        }
+    }
+}
+
 // User Input
 function keyReleased() {
-    Tone.Transport.schedule(function(time){
-        beat_matrix = generatePatterns(); // Doesn't quite do what I want
-    }, Tone.Transport.nextSubdivision("1n"));
+    addRandBeat();
+}
+
+function mouseClicked() {
+    if (mouseX < width && mouseY < height && !window_active) {
+        beat_matrix = generatePatterns();
+        Tone.Transport.start();
+        window_active = true;
+    }
+    else if (mouseX > width || mouseY > height && window_active) {
+        Tone.Transport.stop();
+        window_active = false;
+    }
 }
 
 // Helper Functions for dealing with arrays
 function rotateArray(arr, amount) {
-    for (let i = 0; i < amount; i++) arr.push(arr.shift());
-    return arr;
+    let copy = arr.slice(0); // syntax for cloning arrays
+    for (let i = 0; i < amount; i++) copy.push(copy.shift());
+    return copy;
 }
 
 function getRandElem(arr) {
