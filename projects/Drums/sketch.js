@@ -1,8 +1,15 @@
-let c_width = 400; // Window Size params
-let c_height = 400;
-let blu = 0; // Background Color
+let c_width = 600; // Window Size params
+let c_height = 300;
+let redd = 30; // Background Colors
+let grenn = 30;
+let blu = 30;
 let window_active = false;
-let particles;
+let tutorial_text = [
+    'click me.',
+    'press space.',
+    'click outside of me.',
+    ''
+];
 
 Tone.Transport.bpm.value = 120;
 
@@ -27,7 +34,10 @@ let beats = {
     'aux1':[musical_shapes[0], musical_shapes.slice(0, 6)],
     'aux2':[musical_shapes[0], musical_shapes.slice(0, 6)]
 };
+// In the future this really could be a 3d matrix of beats and particles
+// Now there are two separate matrices of the same shape
 let beat_matrix = generatePatterns();
+let particles;
 
 // Audio Files
 
@@ -71,13 +81,15 @@ loop.start();
 
 function setup() {
   createCanvas(c_width, c_height);
-  background(22, 45, blu);
+  background(redd, grenn, blu);
   particles = generateParticles();
+  drawText();
 }
 
 function draw() {
     setBackgroundColor();
     updateParticles();
+    drawText();
 }
 
 function playSound(samp, time) {
@@ -115,9 +127,17 @@ function generateParticles() {
 function addRandBeat() {
     let col_len = beat_matrix.length;
     let row_len = beat_matrix[0].length;
+    let total_beats = col_len * row_len;
     let added = false;
     let rand_col;
     let rand_row;
+
+    // Prevent infinite while loop - this fix doesn't work!!!
+    // Will still break
+    let beat_count = sum2DArray(beat_matrix);
+    if (beat_count >= total_beats) {
+        return false;
+    }
 
     // Keep trying until we find a place in the matrix without a beat
     while (!added) {
@@ -140,12 +160,16 @@ function addParticle(i, j) {
 
 function setBackgroundColor() {
     if (window_active) {
+        redd = lerp(redd, 22, 0.05);
+        grenn = lerp(grenn, 45, 0.05);
         blu = lerp(blu, 80, 0.05);
     }
     else {
-        blu = lerp(blu, 0, 0.05);
+        redd = lerp(redd, 10, 0.05);
+        grenn = lerp(grenn, 10, 0.05);
+        blu = lerp(blu, 10, 0.05);
     }
-    background(22, 45, blu);
+    background(redd, grenn, blu);
 }
 
 // So much embedded code!!! :(
@@ -162,10 +186,22 @@ function updateParticles() {
  	}
 }
 
+function drawText() {
+    fill(250);
+    textSize(40);
+    text(tutorial_text[0], width*0.1, height*0.2);
+}
+
 // User Input
 function keyReleased() {
-    let arr_pos = addRandBeat();
-    addParticle(arr_pos[0], arr_pos[1]);
+    if (window_active) {
+        let arr_pos = addRandBeat();
+        addParticle(arr_pos[0], arr_pos[1]);
+    }
+    if (tutorial_text.length == 3) {
+        tutorial_text.shift();
+    }
+    return false;
 }
 
 function mouseClicked() {
@@ -174,10 +210,16 @@ function mouseClicked() {
         particles = generateParticles();
         Tone.Transport.start();
         window_active = true;
+        if (tutorial_text.length == 4) {
+            tutorial_text.shift();
+        }
     }
     else if (mouseX > width || mouseY > height && window_active) {
         Tone.Transport.stop();
         window_active = false;
+        if (tutorial_text.length == 2) {
+            tutorial_text.shift();
+        }
     }
 }
 
@@ -199,7 +241,13 @@ function getBeatColumn(arr, col) {
     });
 }
 
-function skewedRand(min, max, gamma=2) {
+function skewedRand(min, max, gamma=0.5) {
 	let r = Math.pow(Math.random(), gamma);
     return map(r, 0, 1, min, max);
+}
+
+function sum2DArray(arr) {
+    let summ = arr.reduce(function(a,b) { return a.concat(b) }) // flatten
+                    .reduce(function(a,b) { return a + b }); // sum
+    return summ;
 }

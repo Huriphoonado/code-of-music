@@ -1,11 +1,13 @@
 function Particle(x, y) {
-    let small_radius = 4;
-    let big_radius = 16;
+    let small_radius = 8;
+    let big_radius = 20;
     let rand_add = 0.2;
+
     this.x = x;
     this.y = y;
     this.radius = small_radius;
     this.bumped = false;
+    this.color = 0;
 
     this.update = function() {
         this.updatePos();
@@ -42,10 +44,12 @@ function Particle(x, y) {
     }
 
     this.updateColor = function() {
-        let c_x = map(this.x, 0, width, 50, 120);
-        let c_y = map(this.y, 0, width, 50, 120);
-        stroke(c_x + c_y);
-        fill(c_x + c_y);
+        let c_x = map(this.x, 0, width, 40, 125);
+        let c_y = map(this.y, 0, height, 40, 125);
+        let new_color = c_x + c_y;
+        this.color = lerp(this.color, new_color, 0.05);
+        stroke(this.color);
+        fill(this.color);
     }
 
     this.bump = function() {
