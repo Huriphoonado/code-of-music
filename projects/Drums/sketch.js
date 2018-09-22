@@ -2,6 +2,7 @@ let c_width = 400; // Window Size params
 let c_height = 400;
 let blu = 0; // Background Color
 let window_active = false;
+let particles;
 
 Tone.Transport.bpm.value = 120;
 
@@ -62,34 +63,28 @@ let loop = new Tone.Sequence(function(time, col){
     for(let i = 0; i < column.length; i++) {
         if (column[i]) {
             playSound(kit[i], time);
+            particles[i][col].bump();
         }
     }
 }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "16n");
 loop.start();
 
-// Visuals
-let particles = [];
+function setup() {
+  createCanvas(c_width, c_height);
+  background(22, 45, blu);
+  particles = generateParticles();
+}
+
+function draw() {
+    setBackgroundColor();
+    updateParticles();
+}
 
 function playSound(samp, time) {
     if (samp.loaded) {
         samp.volume.value = random(-2, 0); // Slight volume variation
         samp.start(time, 0, "8n");
     }
-}
-
-function setup() {
-  createCanvas(c_width, c_height);
-  background(22, 45, blu);
-  particles.push(new Particle(skewedRand(0, width), skewedRand(0, height)));
-}
-
-function draw() {
-    setBackgroundColor();
-
-    for (let i = 0; i < particles.length; i++) {
-   		particles[i].update();
-   		particles[i].show();
- 	}
 }
 
 function generatePatterns() {
@@ -103,21 +98,44 @@ function generatePatterns() {
     return new_matrix;
 }
 
+// Takes a beat_matrix and converts beats to particles returning a new list
+function generateParticles() {
+    let new_particles = beat_matrix.slice(0);
+    for (let i = 0; i < new_particles.length; i++) {
+        for (let j = 0; j < new_particles[i].length; j++) {
+            if (new_particles[i][j]) {
+                new_particles[i][j] = new Particle(skewedRand(0, c_width),
+                                                   skewedRand(0, c_height));
+            }
+        }
+    }
+    return new_particles;
+}
+
 function addRandBeat() {
     let col_len = beat_matrix.length;
     let row_len = beat_matrix[0].length;
     let added = false;
+    let rand_col;
+    let rand_row;
 
-    // Keep trying until we find a  place in the matrix without a beat
+    // Keep trying until we find a place in the matrix without a beat
     while (!added) {
-        let rand_col = Math.floor((Math.random()*col_len));
-        let rand_row = Math.floor((Math.random()*row_len));
+        rand_col = Math.floor((Math.random()*col_len));
+        rand_row = Math.floor((Math.random()*row_len));
         let attempt = beat_matrix[rand_col][rand_row];
         if (!attempt) {
             beat_matrix[rand_col][rand_row] = 1;
             added = true;
         }
     }
+    return [rand_col, rand_row];
+}
+
+function addParticle(i, j) {
+    particles[i][j] = new Particle(skewedRand(0, c_width),
+                                   skewedRand(0, c_height));
+    return true;
 }
 
 function setBackgroundColor() {
@@ -130,14 +148,30 @@ function setBackgroundColor() {
     background(22, 45, blu);
 }
 
+// So much embedded code!!! :(
+function updateParticles() {
+    for (let i = 0; i < particles.length; i++) {
+        for (let j = 0; j < particles[i].length; j++) {
+            if (particles[i][j] != 0) {
+                if (window_active) {
+                    particles[i][j].update();
+                }
+                particles[i][j].show();
+            }
+        }
+ 	}
+}
+
 // User Input
 function keyReleased() {
-    addRandBeat();
+    let arr_pos = addRandBeat();
+    addParticle(arr_pos[0], arr_pos[1]);
 }
 
 function mouseClicked() {
     if (mouseX < width && mouseY < height && !window_active) {
         beat_matrix = generatePatterns();
+        particles = generateParticles();
         Tone.Transport.start();
         window_active = true;
     }
