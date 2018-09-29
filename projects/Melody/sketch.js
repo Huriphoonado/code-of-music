@@ -3,7 +3,7 @@
 // 9/29/2018
 
 let c_width = 600; // Window Size params
-let c_height = 300;
+let c_height = 400;
 let redd = 30; // Background Colors
 let grenn = 30;
 let blu = 30;
@@ -22,12 +22,11 @@ let ryukyu = [
     "F6"
 ];
 
-let noteNames = ryukyu.reverse();
-console.log(ryukyu);
+let noteNames = ryukyu.slice().reverse(); // Fix - use array duplication
 
 // Load all the audio and set up chain
-let reverb = new Tone.Freeverb();
-let reverb_vol = new Tone.Volume(-2);
+let reverb = new Tone.Freeverb(0.95, 2000);
+let reverb_vol = new Tone.Volume(-12);
 let master_vol = new Tone.Volume(0);
 // number of files in audio folder
 let all_pitches = load_all_pitches(26, reverb, reverb_vol, master_vol);
@@ -45,17 +44,12 @@ Tone.Transport.bpm.value = 120;
 
 let loop = new Tone.Sequence(function(time, col){
     let column = getBeatColumn(Particle.positions, col);
-    console.log(column);
     for (let i = 0; i < column.length; i++) {
         grid.bump_column(col);
         if (column[i]) {
-            //playSound(kit[i], time);
-            //particles[i][col].bump();
             bump_particles(col);
-            console.log(noteNames[i]);
-            console.log(all_pitches);
-            // console.log(all_pitches.get(noteNames[i]));
-            playSound(all_pitches[noteNames[i]].player, time);
+            let lifespan = get_particle_lifespan(col, i);
+            playSound(all_pitches[noteNames[i]], time, lifespan);
         }
     }
 }, [...Array(total_beats).keys()], "16n");
@@ -77,11 +71,14 @@ function draw() {
     drawText();
 }
 
-function playSound(samp, time) {
+function playSound(pitch_obj, time, lifespan=0) {
+    let samp = pitch_obj.player;
+    // console.log(lifespan);
     if (samp.loaded) {
-        console.log(samp);
-        // samp.volume.value = random(-2, 0); // Slight volume variation
-        samp.start(time, 0, "8n");
+
+        // Decrease volume as particle dies
+        samp.volume.value = my_map(lifespan, 0, 1, -12, 0);
+        samp.start(time, 0, "4n");
     }
 }
 
@@ -108,11 +105,12 @@ function addRandBeat() {
 
     // Keep trying until we find a place in the matrix without a beat
     while (!added) {
-        rand_col = Math.floor((Math.random()*col_len));
-        rand_row = Math.floor((Math.random()*row_len));
+        // Favor lower pitches - this mapping will rarely reach the top
+        rand_col = Math.floor((skewedRand(0, 1, 0.4)*col_len));
+        rand_row = Math.floor(Math.random()*row_len);
         let attempt = Particle.positions[rand_col][rand_row];
         if (!attempt) {
-            particles.push(new Particle(rand_row, rand_col, 'horizontal', grid));
+            particles.push(new Particle(rand_row, rand_col, grid));
             added = true;
         }
     }
@@ -150,6 +148,16 @@ function bump_particles(beat) {
     }
 }
 
+function get_particle_lifespan(beat, pitch) {
+    for (let i = 0; i < particles.length; i++) {
+        if (particles[i].beat == beat && particles[i].pitch == pitch) {
+            if (particles[i].active) {
+                return particles[i].get_lifespan();
+            }
+        }
+    }
+}
+
 function drawText() {
     fill(250);
     textSize(40);
@@ -169,10 +177,9 @@ function keyReleased() {
 
 function mouseClicked() {
     if (mouseX < width && mouseY < height && !window_active) {
-        // beat_matrix = generatePatterns();
-        // particles = generateParticles();
         Tone.Transport.start();
         window_active = true;
+        grid.activate();
         if (tutorial_text.length == 4) {
             tutorial_text.shift();
         }
@@ -180,6 +187,7 @@ function mouseClicked() {
     else if (mouseX > width || mouseY > height && window_active) {
         Tone.Transport.stop();
         window_active = false;
+        grid.deactivate();
         reset();
         if (tutorial_text.length == 2) {
             tutorial_text.shift();
