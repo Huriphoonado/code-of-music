@@ -20,7 +20,7 @@ function GridPoint(x, y) {
     }
 
     this.updateSize = function() {
-        let size_diff = 2.0;
+        let size_diff = 1.5;
         if (this.bumped && this.radius < (big_radius)) {
             this.radius += size_diff;
         }
@@ -43,7 +43,7 @@ function GridPoint(x, y) {
 
 function Grid(beats, pitches) {
     let x_offset = width/10;
-    let y_offset = height/10;
+    let y_offset = height/5;
 
     this.beats = beats;
     this.pitches = pitches;
@@ -83,8 +83,8 @@ function generate_positions(beats, pitches, x_offset, y_offset) {
         let new_row = [];
         for (let j = 0; j < pitches; j++) {
             let position = {
-                x: map(i, 0, beats, x_offset, width - x_offset),
-                y: map(j, 0, pitches, y_offset, height - y_offset),
+                x: map(i, 0, beats - 1, x_offset, width - x_offset),
+                y: map(j, 0, pitches - 1, y_offset, height - y_offset),
             };
             new_row.push(position);
         }

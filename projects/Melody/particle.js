@@ -1,24 +1,24 @@
 function Particle(beat, pitch, type, grid) {
 
     Particle.positions = Particle.positions || generate_zeros(grid.pitches, grid.beats);
+    Particle.positions[pitch][beat] = 1;
 
     this.active = true; // After it has played a number of times, it will stop
 
     this.beat = beat; // Beat
     this.pitch = pitch; // Pitch
-    let pos = grid.get_position(beat, pitch);
-    this.x = pos.x;
-    this.y = pos.y;
+    this.x = 0;
+    this.y = random(height);
 
-    this.radius = 4;
+    this.radius = 8;
     this.bumped = false;
-    this.color = 200;
-    this.played = 16 * grid.beats; // number of beats to live for
+    this.color = 250;
+    this.played = 4; // number of beats to live for
 
     // 'horizontal', 'vertical', 'none'
     this.type = type;
 
-    let movement_chance = 0.1;
+    let movement_chance = 0.5;
 
     this.update = function() {
         this.updatePos();
@@ -26,7 +26,9 @@ function Particle(beat, pitch, type, grid) {
     }
 
    this.show = function() {
-       this.updateColor();
+       // this.updateColor();
+       stroke(this.color);
+       fill(this.color);
        ellipse(this.x, this.y, this.radius, this.radius);
     }
 
@@ -59,7 +61,7 @@ function Particle(beat, pitch, type, grid) {
 
     this.deactivate = function() {
         this.active = false;
-        Particle.positions[this.beat][this.pitch] = 0;
+        Particle.positions[this.pitch][this.beat] = 0;
         return false;
     }
 
@@ -69,7 +71,7 @@ function Particle(beat, pitch, type, grid) {
             return;
         }
 
-        let new_rand = rand(100);
+        let new_rand = random(100);
         if (new_rand < movement_chance) {
             if (type == 'vertical') {
                 this.vertical_move()
@@ -82,43 +84,37 @@ function Particle(beat, pitch, type, grid) {
 
     this.horizontal_move = function() {
         let possiblities = [-1, 1];
-        let new_beat = this.beat + possiblities[floor(rand(possiblities.length))];
+        let new_beat = mod((this.beat + possiblities[floor(random(possiblities.length))]), grid.beats);
 
         // If there is already a note there - do nothing
-        if (Particle.positions[new_beat][this.pitch]) return;
+        if (Particle.positions[this.pitch][new_beat]) return;
 
         // Otherwise, update the beat array
-        Particle.positions[this.beat][this.pitch] = 0;
+        Particle.positions[this.pitch][this.beat] = 0;
         this.beat = new_beat;
-        Particle.positions[this.beat][this.pitch] = 1;
+        Particle.positions[this.pitch][this.beat] = 1;
     }
 
     this.vertical_move = function() {
         let possiblities = [-1, 1];
-        let new_pitch = this.pitch + possiblities[floor(rand(possiblities.length))];
+        let new_pitch = mod((this.pitch + possiblities[floor(random(possiblities.length))]), grid.pitches);
 
         // If there is already a note there - do nothing
-        if (Particle.positions[this.beat][new_pitch]) { return };
+        if (Particle.positions[new_pitch][this.beat]) { return };
 
         // Otherwise, update the beat array
-        Particle.positions[this.beat][this.pitch] = 0;
+        Particle.positions[this.pitch][this.beat] = 0;
         this.pitch = new_pitch;
-        Particle.positions[this.beat][this.pitch] = 1;
+        Particle.positions[this.pitch][this.beat] = 1;
     }
-}
-
-function arrays_equal(arr1, arr2) {
-    if(arr1.length !== arr2.length)
-        return false;
-    for(var i = arr1.length; i--;) {
-        if(arr1[i] !== arr2[i])
-            return false;
-    }
-
-    return true;
 }
 
 function generate_zeros(rows, cols) {
     let new_arr = Array(rows).fill().map(() => Array(cols).fill(0));
     return new_arr;
+}
+
+// Javascript modulus doesn't wrap negatives around!
+function mod(n, m) {
+  return ((n % m) + m) % m;
 }
