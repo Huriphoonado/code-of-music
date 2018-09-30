@@ -21,16 +21,10 @@ function Particle(beat, pitch, grid) {
         'horizontal': {r: 201, g: 98, b: 101},
         'vertical': {r: 86, g: 248, b: 199}
     }
-    this.color = {
-        r: 211,
-        g: 229,
-        b: 255
-    };
 
-    this.lifetime = floor(random(12, 20)); // number of beats to live for
+    this.lifetime = floor(random(18, 28)); // number of beats to live for
     this.played = this.lifetime;
 
-    // 'horizontal', 'vertical', 'none'
     let types = ['horizontal', 'vertical', 'none'];
     this.type = types[floor(random(3))];
 
