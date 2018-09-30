@@ -63,14 +63,12 @@ function GridPoint(x, y) {
         this.current_color.r = active_color.r;
         this.current_color.g = active_color.g;
         this.current_color.b = active_color.b;
-        // console.log(this.current_color);
     }
 
     this.deactivate = function() {
         this.current_color.r = inactive_color.r;
         this.current_color.g = inactive_color.g;
         this.current_color.b = inactive_color.b;
-        // console.log(this.current_color);
     }
 }
 
