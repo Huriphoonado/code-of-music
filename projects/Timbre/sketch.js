@@ -13,6 +13,7 @@ let bcg_col = {
 let active = false;
 
 // When the mouse goes below this height, it acts as a button
+// In this case, it resets heights of the blocks
 const trigger_height = c_height/10;
 
 let blocks;
@@ -20,10 +21,10 @@ let oscillators;
 
 let num_oscillators = 7;
 
-let tremolo = new Tone.Tremolo(8, 0.5).start();
+let tremolo = new Tone.Tremolo(7, 0.95).start();
 tremolo.type = 'triangle';
 tremolo.spread = 100;
-let reverb = new Tone.JCReverb(0.95);
+let reverb = new Tone.JCReverb(0.1);
 let reverb_vol = new Tone.Volume(-8);
 let master_vol = new Tone.Volume(0);
 
@@ -97,6 +98,10 @@ function map_cursor_position(pos) {
     // Volume Mapping
     let m_vol_control = map(pos, 0, height, -20, 0, true);
     master_vol.volume.rampTo(m_vol_control, ramp_val);
+
+    // Reverb Mapping
+    let r_control = map(pos, 0, height, 0.95, 0.1, true);
+    reverb.roomSize.rampTo(r_control, ramp_val);
 
     // Individual Instrument Mapping
     let o_vol_control = map(pos, 0, height, -40, -12, true)
