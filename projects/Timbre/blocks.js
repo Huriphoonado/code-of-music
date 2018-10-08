@@ -28,7 +28,7 @@ function Block(x, b_width, min_mouse) {
         // May need to play with how its size changes
         // Potential fix for testing - set at height/2
         this.updateColor();
-        rect(this.x, height - this.b_height, this.b_width, this.b_height, 10, 10, 0, 0);
+        rect(this.x, height - this.b_height, this.b_width, this.b_height, 1, 1, 0, 0);
     }
 
     this.updateSize = function(active) {

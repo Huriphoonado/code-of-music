@@ -18,28 +18,43 @@ const trigger_height = c_height/10;
 let blocks;
 let oscillators;
 
-let num_oscillators = 6;
+let num_oscillators = 7;
 
 let tremolo = new Tone.Tremolo(8, 0.5).start();
 tremolo.type = 'triangle';
-tremolo.spread = 10;
-let reverb = new Tone.JCReverb(0.8);
+tremolo.spread = 100;
+let reverb = new Tone.JCReverb(0.95);
 let reverb_vol = new Tone.Volume(-8);
 let master_vol = new Tone.Volume(0);
+
+// Debussy Chords
+let c0 = ['A2', 'D#3', 'A3', 'C#4', 'F#4', 'C#5', 'F#5'];
+let c1 = ['G#2', 'F#3', 'C#4', 'E4', 'A4', 'E5', 'A5'];
+let c2 = ['B2', 'A3', 'D#4', 'F#4', 'B4', 'F#5', 'B5'];
+let c3 = ['G#2', 'E3', 'G#3', 'B3', 'E4', 'B4', 'E5'];
+let c4 = ['G#2', 'G#3', 'B3', 'D#4', 'G4', 'D#5', 'G5'];
+let c5 = ['A2', 'D#3', 'A3', 'C#4', 'G#4', 'C#5', 'G#5'];
+let line_one = [c0, c1, c2, c3, c4, c5];
+let score = [];
 
 function setup() {
     createCanvas(c_width, c_height);
     set_background();
     oscillators = build_oscillators(num_oscillators, tremolo, reverb, reverb_vol, master_vol);
     blocks = new Blocks(60, trigger_height);
+    cursor = new Cursor();
 }
 
 function draw() {
     set_background();
+
+    cursor.update(active);
+    cursor.show(active);
+
     blocks.update(active);
     blocks.show();
 
-    map_mouse_position();
+    map_cursor_position(cursor.getPos());
 }
 
 function set_background() {
@@ -53,9 +68,12 @@ function set_background() {
 function mousePressed() {
     active = true;
     tremolo.start();
-    oscillators.forEach(function(o) {
-        o.oscillator.triggerAttack(o.pitch);
-    });
+    let new_chord = get_new_chord();
+
+    for (let i=0; i<oscillators.length; i++) {
+        oscillators[i].pitch = new_chord[i];
+        oscillators[i].oscillator.triggerAttack(oscillators[i].pitch);
+    }
 
     return false;
 }
@@ -69,22 +87,21 @@ function mouseReleased() {
     return false;
 }
 
-function map_mouse_position() {
-    // console.log(tremolo.depth);
-    let i_y = inverted_y();
+function map_cursor_position(pos) {
+    let ramp_val = 0.1;
 
     // Tremolo Mapping
-    let t_control = map(i_y, 0, height, 0.1, 1.0, true)
-    tremolo.depth.rampTo(t_control, 0.1);
+    let t_control = map(pos, 0, height, 0.1, 1.0, true)
+    tremolo.depth.rampTo(t_control, ramp_val);
 
     // Volume Mapping
-    let m_vol_control = map(i_y, 0, height, -20, 0, true);
-    master_vol.volume.rampTo(m_vol_control, 0.1);
+    let m_vol_control = map(pos, 0, height, -20, 0, true);
+    master_vol.volume.rampTo(m_vol_control, ramp_val);
 
     // Individual Instrument Mapping
-    let o_vol_control = map(i_y, 0, height, -40, -12, true)
-    oscillators[0].panner.volume.rampTo(o_vol_control, 0.1);
-    oscillators[oscillators.length-1].panner.volume.rampTo(o_vol_control, 0.1);
+    let o_vol_control = map(pos, 0, height, -40, -12, true)
+    oscillators[0].panner.volume.rampTo(o_vol_control, ramp_val);
+    oscillators[oscillators.length-1].panner.volume.rampTo(o_vol_control, ramp_val);
 
 }
 
@@ -107,11 +124,11 @@ function build_oscillators(num_oscillators, tremolo, reverb, reverb_vol, master_
         new_oscillators.push({
             oscillator: new_oscillator,
             panner: new_panner,
-            pitch: 'C' + i
+            pitch: c0[i]  // This should be overwritten on first mouse click
         });
     }
 
-    return new_oscillators
+    return new_oscillators;
 }
 
 // Swap out code here for new oscillator.
@@ -119,7 +136,7 @@ function build_oscillators(num_oscillators, tremolo, reverb, reverb_vol, master_
 function build_oscillator() {
     return new Tone.Synth({
         'oscillator': {
-            type: 'triangle'
+            type: ['sine', 'triangle'][floor(random(2))]
         },
         'envelope': {
             attack: 1,
@@ -128,4 +145,24 @@ function build_oscillator() {
             release: 1
         }
     });
+}
+
+// Relies on global variables, line_one and score
+function get_new_chord() {
+    if (!(score.length)) {
+        score = shuffle_array(line_one);
+    }
+    return score.shift();
+}
+
+function shuffle_array(arr) {
+    let cpy = arr.slice(0);
+    for (var i = cpy.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = cpy[i];
+        cpy[i] = cpy[j];
+        cpy[j] = temp;
+    }
+
+    return cpy;
 }
