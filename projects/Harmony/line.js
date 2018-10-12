@@ -16,6 +16,8 @@ function Line(synth=false) {
     }
 
     this.show = function(active=false) {
+        stroke(255);
+        fill(255);
         rect(this.x, this.y, 30, 30);
     }
 
@@ -26,7 +28,6 @@ function Line(synth=false) {
     this.check_status = function() {
         if (millis() > this.end_time) {
             this.alive = false;
-            console.log('died');
         }
         return this.alive;
     }
@@ -62,7 +63,6 @@ function Lines() {
         for (let i=0; i<this.line_list.length; i++) {
             if (!(this.line_list[i].alive)) {
                 dead_list.unshift(i); // Add to beginning rather than end
-                console.log(dead_list);
             }
         }
         dead_list.forEach(function(i) {
