@@ -1,27 +1,45 @@
 function Particle() {
-    this.y = 0;
+    this.height = height/1.5;
+
+    this.y = -this.height;
     this.x = random(width);
 
-    this.height = 40;
-
-    this.speed = {'min': 1, 'max': height/10};
-    this.speed['curr'] = random(this.speed['min'], this.speed['max']);
+    this.speed = {min: 15, max: height/18};
+    this.speed.curr = this.speed.min;
 
     this.color = {
+        true: {r: 0, g: 102, b: 153},
+        false: {r: 202, g: 170, b: 121},
         curr: {r: 202, g: 170, b: 121}
     }
+    this.dark = random(0.5, 1);
+    this.weight = map(this.dark, 0.5, 1, 1, 4)
 
     this.update = function(active=false) {
-        this.y += this.speed['curr'];
+        this.update_speed();
+        this.y += this.speed.curr;
     }
 
     this.show = function(active=false) {
         push();
-        strokeWeight(4);
-        stroke(this.color.curr.r, this.color.curr.g, this.color.curr.b);
+        this.update_color(active);
         line(this.x, this.y, this.x, this.y + this.height);
-
         pop();
+    }
+
+    this.update_speed = function() {
+        this.speed.curr = map(this.y, 0, height, this.speed.min, this.speed.max, true);
+    }
+
+    this.update_color = function(active=false) {
+        let lerper = 0.2;
+        this.color.curr.r = lerp(this.color.curr.r, this.color[active].r, lerper);
+        this.color.curr.g = lerp(this.color.curr.g, this.color[active].g, lerper);
+        this.color.curr.b = lerp(this.color.curr.b, this.color[active].b, lerper);
+        strokeWeight(this.weight);
+        stroke(this.color.curr.r * this.dark,
+               this.color.curr.g * this.dark,
+               this.color.curr.b * this.dark);
     }
 
 }
@@ -31,7 +49,7 @@ function Particles() {
     this.total_particles = 100;
     this.probs = {
         'min': 1,
-        'max': 20,
+        'max': 40,
         'curr': 1
     }
 
@@ -55,7 +73,7 @@ function Particles() {
     }
 
     this.try_to_add_particle = function(num_pitches) {
-        this.probs['curr'] = map(num_pitches, 0, 10, this.probs['min'], this.probs['max'], true)
+        this.probs['curr'] = map(num_pitches, 0, 20, this.probs['min'], this.probs['max'], true)
         let rand_val = random(100);
 
         if (rand_val <= this.probs['curr']) {
