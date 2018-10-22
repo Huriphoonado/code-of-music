@@ -56,7 +56,7 @@ function mouseReleased() {
         if (tutorial_text.length == 3) {
             tutorial_text.shift();
         }
-        
+
         if (active) {
             active = false;
             master_vol.volume.rampTo(-100, 0.1);
