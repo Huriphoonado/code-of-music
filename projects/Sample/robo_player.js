@@ -53,7 +53,7 @@ function RoboPlayer(guitars) {
                 self.settings.dynamic = ['low', 'high'][floor(random(2))];
                 break;
             case 3:
-                self.settings.type = ['low', 'high'][floor(random(2))];
+                self.settings.type = ['normal', 'harmonics'][floor(random(2))];
         }
 
         // Then, assign the new audio set

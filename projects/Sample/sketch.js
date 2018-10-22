@@ -51,17 +51,19 @@ function draw() {
 }
 
 function mouseReleased() {
-    if (active) {
-        roboPlayer.stop();
-        active = false;
-    }
-    else {
-        roboPlayer.start();
-        active = true;
-    }
+    if (mouseX <= width && mouseY <= height) {
+        if (active) {
+            roboPlayer.stop();
+            active = false;
+        }
+        else {
+            roboPlayer.start();
+            active = true;
+        }
 
-    if (tutorial_text.length == 2) {
-        tutorial_text.shift();
+        if (tutorial_text.length == 2) {
+            tutorial_text.shift();
+        }
     }
 }
 
