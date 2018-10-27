@@ -1,7 +1,9 @@
 function GridPoint(x, y) {
     let inactive_color = {r: 100, g: 100, b: 100};
     let active_color = [
-        {r: 40, g: 14, b: 20},
+        {r: 100, g: 60, b: 130},
+        {r: 60, g: 120, b: 130},
+        {r: 100, g: 80, b: 60},
         {r: 42, g: 90, b: 162}
     ];
     this.small_radius = height/30;
@@ -126,6 +128,14 @@ function Grid(beats, pitches) {
         for (let i = 0; i < this.beats; i++) {
             for (let j = 0; j < this.pitches; j++) {
                 this.gridpoints[i][j].deactivate();
+            }
+        }
+    }
+
+    this.changeMode = function(scale_mode) {
+        for (let i = 0; i < this.beats; i++) {
+            for (let j = 0; j < this.pitches; j++) {
+                this.gridpoints[i][j].changeMode(scale_mode);
             }
         }
     }

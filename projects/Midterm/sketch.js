@@ -1,47 +1,79 @@
 // Willie Payne
 // Code of Music Midterm
 
-Tone.Transport.bpm.value = 120;
+Tone.Transport.bpm.value = 110; // Global tempo
+let loop; // Global music loop
 
-let c_width = 600; // Window Size params
-let c_height = 400;
+let c_width = 800; // Window Size params
+let c_height = 500;
 
+// Various background colors used for the different modes
 let bcg_col = {
     true: [
-        {r: 252, g: 228, b: 182},
+        {r: 80, g: 20, b: 80},
+        {r: 20, g: 80, b: 60},
+        {r: 170, g: 140, b: 10},
         {r: 22, g: 45, b: 80}
     ],
     false: [
+        {r: 30, g: 30, b: 30},
+        {r: 30, g: 30, b: 30},
         {r: 30, g: 30, b: 30},
         {r: 30, g: 30, b: 30}
     ],
     curr: {r: 30, g: 30, b: 30}
 }
 
-let window_active = false;
+let window_active = false; // Whether the user has clicked the window
 let tutorial_text = [
     'click me.',
     'press space.',
     ''
 ];
 
-// Set up multiple scales here if you want
+// Set up multiple scales as well as the variables that dictate swapping
+// between them
 let scale_mode = 0;
+
 let ryukyu = [
     "F4", "A4", "A#4", "C5", "E5",
     "F5", "A5", "A#5", "C6", "E6",
     "F6"
 ];
 
-let scales = [
-    ryukyu.slice().reverse()
+let e_min_pent = [
+    "E5", "G5", "A5", "B5", "D6",
+    "E6", "G6", "A6", "B6", "D7",
+    "E7"
 ];
+
+let g_maj_pent = [
+    "G4", "A4", "B4", "D5", "E5",
+    "G5", "A5", "B5", "D6", "E6",
+    "G6"
+];
+
+let indian_pent = [
+    "D5", "F#5", "G5", "A5", "C6",
+    "D6", "F#6", "G6", "A6", "C7",
+    "D7"
+];
+
+let scales = [
+    ryukyu.slice().reverse(),
+    indian_pent.slice().reverse(),
+    e_min_pent.slice().reverse(),
+    g_maj_pent.slice().reverse()
+];
+let num_scales = scales.length;
+let pitches_until_next_change = 20;
 
 // Load all the audio and set up chain
 let reverb = new Tone.Freeverb(0.95, 2000);
 let reverb_vol = new Tone.Volume(-12);
 let master_vol = new Tone.Volume(0);
-// number of files in audio folder
+
+// Number of pitches in the audio folder
 let all_pitches = load_all_pitches(45, reverb, reverb_vol, master_vol);
 
 // Overall Rhythmic/Pitch Grid
@@ -52,7 +84,6 @@ let grid;
 // Particles function as living notes added to the grid
 Particle.positions = generate_zeros(total_pitches, total_beats);
 let particles = [];
-let loop;
 
 // Setup
 function setup() {
@@ -68,11 +99,11 @@ function setup() {
           if (column[i]) {
               bump_particles(col);
               let lifespan = get_particle_lifespan(col, i);
-              let humanize = randomGaussian(0, 0.5)/100;
+              let humanize = randomGaussian(0, 0.2)/100;
 
               // A lot goes into here:
               // The note for the current scale we are using
-              // Time to play the note with a little "human" randomness
+              // Time to play the note with a little "human" `random`ness
               // The note's lifespan which controls how loud it is
               playSound(all_pitches[scales[scale_mode][i]], time+humanize, lifespan);
           }
@@ -89,14 +120,17 @@ function draw() {
     drawText();
 }
 
+// Pick a random sample (as there are multiple for each pitch)
+// Then check if it is loaded and hopefully play
 function playSound(pitch_obj, time, lifespan=0) {
     let samp = pitch_obj.players;
-    let samp_sel = ['A', 'B', 'C', 'D', 'E'][floor(random(5))];
+    let samp_sel = ['A', 'B', 'C', 'D', 'E'][pitch_obj.current_player];
 
     if (samp.loaded) {
         // Decrease volume as particle dies
         samp.volume.value = my_map(lifespan, 0, 1, -14, 0.0);
         samp.get(samp_sel).start(time, 0);
+        pitch_obj.current_player = (pitch_obj.current_player + 1) % 5;
     }
 }
 
@@ -177,13 +211,23 @@ function drawText() {
 }
 
 // User Input
+// Function will do up to three things
+//  Add a new note to the grid
+//  Removes tutorial tex if it is still on the screen
+// Changes the scale mode if a certain number of pitches have been added
 function keyReleased() {
     if (window_active) {
         addRandBeat();
     }
+
     if (tutorial_text.length == 2) {
         tutorial_text.shift();
     }
+
+    if (((particles.length + 1) % pitches_until_next_change) == 0 ) {
+        change_scale_mode();
+    }
+
     return false;
 }
 
@@ -206,6 +250,16 @@ function mouseClicked() {
     }
 }
 
+function change_scale_mode() {
+    scale_mode = (scale_mode + 1) % num_scales;
+    grid.changeMode(scale_mode);
+
+    let random_tempo_change = floor(random(5));
+    if (!random_tempo_change) {
+        Tone.Transport.bpm.rampTo(floor(random(100, 125)));
+    }
+}
+
 // Returns an object where:
 //  key: pitch
 //  Value: {pitch, pitch_class, audio_file, player, pan}
@@ -216,6 +270,9 @@ function load_all_pitches(num_pitches, reverb, reverb_vol, master_vol) {
         let new_pitch = create_audio_name(i);
 
         new_pitch.players = new Tone.Players(new_pitch.audio_files);
+        new_pitch.players.fadeOut = 0.0;
+        new_pitch.players.fadeIn = 0.01;
+        new_pitch.current_player = Math.floor(Math.random(5));
 
         let pan_amount = my_map(i, 1, num_pitches, -0.8, 0.8)
         new_pitch.pan = new Tone.PanVol(pan_amount, -12);
