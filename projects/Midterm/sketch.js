@@ -1,6 +1,10 @@
 // Willie Payne
 // Code of Music Midterm
 
+// Rather than using all five xylophone samples per note only use one
+// This speeds up loading time significantly when in the browser
+let single_sample_mode = true;
+
 Tone.Transport.bpm.value = 110; // Global tempo
 let loop; // Global music loop
 
@@ -129,8 +133,14 @@ function playSound(pitch_obj, time, lifespan=0) {
     if (samp.loaded) {
         // Decrease volume as particle dies
         samp.volume.value = my_map(lifespan, 0, 1, -14, 0.0);
-        samp.get(samp_sel).start(time, 0);
-        pitch_obj.current_player = (pitch_obj.current_player + 1) % 5;
+
+        if (single_sample_mode) {
+            samp.get('A').start(time, 0);
+        }
+        else {
+            samp.get(samp_sel).start(time, 0);
+            pitch_obj.current_player = (pitch_obj.current_player + 1) % 5;
+        }
     }
 }
 
@@ -268,6 +278,14 @@ function load_all_pitches(num_pitches, reverb, reverb_vol, master_vol) {
     let all_pitches = {};
     for (let i = 1; i < num_pitches; i++) {
         let new_pitch = create_audio_name(i);
+
+        // Only load one player
+        if (single_sample_mode) {
+            new_pitch.players = new Tone.Players({'A': new_pitch.audio_files['A']});
+        }
+        else {
+            new_pitch.players = new Tone.Players(new_pitch.audio_files);
+        }
 
         new_pitch.players = new Tone.Players(new_pitch.audio_files);
         new_pitch.players.fadeOut = 0.0;
