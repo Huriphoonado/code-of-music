@@ -1,0 +1,52 @@
+{
+	"pattrstorage" : 	{
+		"name" : "u410001354",
+		"slots" : 		{
+			"1" : 			{
+				"id" : 1,
+				"data" : 				{
+					"envelopes[1]::bp.Gate Sequencer::ClockSelect" : [ 0.0 ],
+					"envelopes[1]::bp.Gate Sequencer::PatternGrid" : [ 3, 16, 1, 0, 5, 2000, 4000, 8000, 10000, 14000, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 ],
+					"envelopes[1]::bp.Gate Sequencer::Pulse" : [ 4.0 ],
+					"envelopes[1]::bp.Gate Sequencer::Reset" : [ 1.0 ],
+					"envelopes[1]::bp.Gate Sequencer::Steps" : [ 16.0 ],
+					"envelopes[1]::bp.Gate Sequencer::Sync" : [ 0.0 ],
+					"envelopes[1]::bp.Gate Sequencer::gatepct" : [ 80.0 ],
+					"envelopes[1]::bp.Gate Sequencer::max pulse[1]" : [ 13.0 ],
+					"envelopes[1]::bp.Gate Sequencer::mute" : [ 0.0 ],
+					"envelopes[1]::bp.Gate Sequencer::swing amount" : [ 0.0 ],
+					"envelopes[1]::bp.Gate Sequencer::swing switch" : [ 0.0 ],
+					"envelopes[1]::bp.AD::Attack" : [ 10.0 ],
+					"envelopes[1]::bp.AD::Decay" : [ 70.0 ],
+					"envelopes[1]::bp.AD::mute" : [ 0.0 ],
+					"envelopes[1]::bp.VCA::Bypass" : [ 0.0 ],
+					"envelopes[1]::bp.VCA::Quadrants" : [ 0.0 ],
+					"envelopes[1]::bp.VCA::Response" : [ 0.0 ],
+					"envelopes[2]::bp.Gate Sequencer::ClockSelect" : [ 0.0 ],
+					"envelopes[2]::bp.Gate Sequencer::PatternGrid" : [ 3, 16, 1, 0, 6, 0, 2000, 6000, 8000, 12000, 14000, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 ],
+					"envelopes[2]::bp.Gate Sequencer::Pulse" : [ 4.0 ],
+					"envelopes[2]::bp.Gate Sequencer::Reset" : [ 1.0 ],
+					"envelopes[2]::bp.Gate Sequencer::Steps" : [ 16.0 ],
+					"envelopes[2]::bp.Gate Sequencer::Sync" : [ 0.0 ],
+					"envelopes[2]::bp.Gate Sequencer::gatepct" : [ 80.0 ],
+					"envelopes[2]::bp.Gate Sequencer::max pulse[1]" : [ 13.0 ],
+					"envelopes[2]::bp.Gate Sequencer::mute" : [ 0.0 ],
+					"envelopes[2]::bp.Gate Sequencer::swing amount" : [ 0.0 ],
+					"envelopes[2]::bp.Gate Sequencer::swing switch" : [ 0.0 ],
+					"envelopes[2]::bp.AD::Attack" : [ 10.0 ],
+					"envelopes[2]::bp.AD::Decay" : [ 100.0 ],
+					"envelopes[2]::bp.AD::mute" : [ 0.0 ],
+					"envelopes[2]::bp.VCA::Bypass" : [ 0.0 ],
+					"envelopes[2]::bp.VCA::Quadrants" : [ 0.0 ],
+					"envelopes[2]::bp.VCA::Response" : [ 0.0 ],
+					"bgPort::Tempo" : [ 80.0 ],
+					"bgPort::Transport" : [ 0.0 ]
+				}
+
+			}
+
+		}
+
+	}
+
+}
