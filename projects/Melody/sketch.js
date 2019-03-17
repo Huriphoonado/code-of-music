@@ -176,6 +176,10 @@ function keyReleased() {
 }
 
 function mouseClicked() {
+    if (Tone.context.state !== 'running') {
+        Tone.context.resume();
+    }
+	
     if (mouseX < width && mouseY < height && !window_active) {
         Tone.Transport.start();
         window_active = true;
