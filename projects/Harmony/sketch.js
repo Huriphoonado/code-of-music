@@ -52,6 +52,10 @@ function keyReleased() {
 }
 
 function mouseReleased() {
+    if (Tone.context.state !== 'running') {
+        Tone.context.resume();
+    }
+    
     if (mouseX < width && mouseY < height) {
         if (tutorial_text.length == 3) {
             tutorial_text.shift();
